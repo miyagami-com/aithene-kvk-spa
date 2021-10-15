@@ -26,14 +26,14 @@ async function scrapeAll(browserInstance, query){
         console.log("Scraped all");
         return await pageScraper(browser, query);
     }
-    catch(err){
+    catch(err) {
         console.log("Could not resolve the browser instance => ", err);
         return (err)
     }
 }
 
 async function pageScraper(browser, query){
-    const url = `https://www.kvk.nl/zoeken/handelsregister/?handelsnaam=${query}`
+    const url = `https://www.kvk.nl/zoeken/handelsregister/?handelsnaam=${encodeURIComponent(query)}`
     let page = await browser.newPage();
 
     await page.setViewport({width: 1366, height: 1400})
@@ -41,19 +41,24 @@ async function pageScraper(browser, query){
     // Navigate to the selected page
     await page.goto(url);
     // Wait for the required DOM to be rendered
-    await page.waitForSelector('#js-search-results > div > ul.results');
+    await page.waitForSelector('#js-search-results > div > ul.results').catch(error => {
+      console.log("Error finding data: ", error)
+      return [];
+    });
     // Get the link to all the required books
     let urls = await page.$$eval('#js-search-results > div > ul.results > li', items => {
         let data = [];
 
         console.log('items', items)
-
-        const names = items.map((el) => el.querySelector('div.more-search-info > p').textContent)
+        
+        const names =  items.map((el) => el.waitForSelector('div.more-search-info > p').textContent)
         console.log('names', names)
-        const kvks = items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
+        const kvks =  items.map((el) => el.waitForSelector('div.content > ul > li:nth-child(1)').textContent)
         console.log('kvks', kvks)
-        const links = items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
+        const links =  items.map((el) => el.waitForSelector('div.handelsnaamHeaderWrapper > h3 > a').href)
         console.log('links', links)
+        
+    
 
         for (let i = 0; i < items.length; i++) {
             data[i] = {
@@ -64,7 +69,7 @@ async function pageScraper(browser, query){
         }
 
         return data;
-    });
+    }).catch(error => console.log("ERROR OCCURED: ", error));
     return urls;
 }
 
@@ -79,6 +84,7 @@ export default function handler(req, res) {
           name: query,
           items: val,
       }
+      console.log("DATA: ", data);
       res.status(200).send(data)
     });
   } catch (e) {

@@ -26,7 +26,8 @@ export default function Home() {
         console.log(query);
         setLoading(true);
         try {
-            await axios.get(`/api/${query}`).then((res) => {
+            await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
+                console.log("DATAAA: ",res.data)
                 setData(res.data);
                 setLoading(false);
             })
