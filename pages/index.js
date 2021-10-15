@@ -20,6 +20,7 @@ export default function Home() {
     const [uploading, setUploading] = useState(false);
 
     const [data, setData] = useState([]);
+    axios.defaults.timeout = 10000;
 
     const fetchData = async (query) => {
         console.log(encodeURIComponent(query));
@@ -30,6 +31,7 @@ export default function Home() {
                 setLoading(false);
             })
         } catch (e) {
+            message.error("Error occured looking for data")
             setLoading(false);
         }
     }
