@@ -41,6 +41,7 @@ async function pageScraper(browser, query){
     // Navigate to the selected page
     await page.goto(url);
     // Wait for the required DOM to be rendered
+
     await page.waitForSelector('#js-search-results > div > ul.results').catch(error => {
       console.log("Error finding data: ", error)
       return [];
