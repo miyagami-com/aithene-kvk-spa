@@ -6,7 +6,7 @@ import {Button, Layout, PageHeader} from 'antd';
 import {CloudUploadOutlined, DownloadOutlined} from '@ant-design/icons';
 import {TableComponent} from "../components/Table";
 import {useEffect, useState} from "react";
-import * as XLSX from 'xlsx';
+//import * as XLSX from 'xlsx';
 
 const {Header, Content, Footer} = Layout;
 
@@ -21,10 +21,10 @@ export default function Home() {
     const [data, setData] = useState([]);
 
     const fetchData  = async (query) => {
-        console.log(query);
         setLoading(true);
         try {
-            await axios.get(`/api/${query}`).then((res) => {
+            await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
+                console.log("DATAAA: ",res.data)
                 setData(res.data);
                 setLoading(false);
             })
@@ -44,7 +44,7 @@ export default function Home() {
                 <Button
                     loading={loading}
                     disabled={loading}
-                    onClick={() => fetchData("TechNet%20Business%20Development%20Group")}
+                    onClick={() => fetchData("TechNet Business Development Group")}
                 >
                     click Me
                 </Button>
