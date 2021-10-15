@@ -28,6 +28,7 @@ async function scrapeAll(browserInstance, query){
     }
     catch(err){
         console.log("Could not resolve the browser instance => ", err);
+        return (err)
     }
 }
 
@@ -70,6 +71,7 @@ async function pageScraper(browser, query){
 
 export default function handler(req, res) {
   let query = req.query.query;
+  console.log(query);
 
   try {
     scrapeAll(browserInstance, query).then((val) => {
@@ -77,10 +79,10 @@ export default function handler(req, res) {
           name: query,
           items: val,
       }
-      res.send(data)
+      res.status(200).send(data)
     });
   } catch (e) {
-    res.send(e);
+    res.status(400).send(e);
   }
 
 

@@ -21,11 +21,16 @@ export default function Home() {
     const [data, setData] = useState([]);
 
     const fetchData  = async (query) => {
+        console.log(query);
         setLoading(true);
-        await axios.get(`/api/${query}`).then((res) => {
-            setData(res.data);
+        try {
+            await axios.get(`/api/${query}`).then((res) => {
+                setData(res.data);
+                setLoading(false);
+            })
+        } catch (e) {
             setLoading(false);
-        })
+        }
     }
 
     useEffect(() => {
@@ -39,7 +44,7 @@ export default function Home() {
                 <Button
                     loading={loading}
                     disabled={loading}
-                    onClick={() => fetchData("Miyagi")}
+                    onClick={() => fetchData("TechNet%20Business%20Development%20Group")}
                 >
                     click Me
                 </Button>
