@@ -1,18 +1,15 @@
-import React  from 'react';
-import { Table} from 'antd';
+import React from 'react';
+import {Table} from 'antd';
+
 const columns = [
     {
         title: 'Name',
         dataIndex: 'name',
-        render: (text) => <a>{text}</a>,
+        render: (name, item) => <a href={item.href} target="_blank" rel="noreferrer noopener">{name}</a>,
     },
     {
         title: 'KVK',
         dataIndex: 'kvk',
-    },
-    {
-        title: 'URL',
-        dataIndex: 'href',
     },
 ];
 

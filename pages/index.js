@@ -5,13 +5,14 @@ import axios from 'axios';
 import {Button, Layout, PageHeader} from 'antd';
 import {CloudUploadOutlined, DownloadOutlined} from '@ant-design/icons';
 import {TableComponent} from "../components/Table";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import * as XLSX from 'xlsx';
 
 const {Header, Content, Footer} = Layout;
 
 export default function Home() {
     const [query, setQuery] = useState('');
+    const [loading, setLoading] = useState(false);
     const [download, setDownload] = useState(null)
     const [downloading, setDownloading] = useState(false);
     const [upload, setUpload] = useState(null)
@@ -20,14 +21,26 @@ export default function Home() {
     const [data, setData] = useState([]);
 
     const fetchData  = async (query) => {
-        await axios.get(`/api/${query}`).then((res) => setData(res.data.items))
+        setLoading(true);
+        await axios.get(`/api/${query}`).then((res) => {
+            setData(res.data);
+            setLoading(false);
+        })
     }
+
+    useEffect(() => {
+        console.log(data)
+    },[data])
 
     return (
         <Layout className="layout" theme="light">
             <Header theme="light">
                 <div className="logo"/>
-                <Button onClick={() => fetchData("Miyagi")}>
+                <Button
+                    loading={loading}
+                    disabled={loading}
+                    onClick={() => fetchData("Miyagi")}
+                >
                     click Me
                 </Button>
                 <Button
@@ -50,12 +63,11 @@ export default function Home() {
             <Content style={{padding: '40px'}}>
                 <PageHeader
                     className="site-page-header"
-                    onBack={() => null}
-                    title="Title"
-                    subTitle="This is a subtitle"
+                    title={data?.name || "Search query"}
+                    subTitle={`${data?.items?.length || ''} ${data?.items?.length ? 'Results' : ''}`}
                 />
                 <div className="site-layout-content">
-                    <TableComponent data={data} setData={setData}/>
+                    <TableComponent data={data?.items} setData={setData}/>
                 </div>
             </Content>
             <Footer style={{textAlign: 'center'}}>Created with <span role="image">❤️</span>by

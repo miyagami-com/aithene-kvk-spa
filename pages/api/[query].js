@@ -1,9 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 
-//const express = require('express');
-// const browserObject = require('./browser');
 const puppeteer = require('puppeteer');
-// const scraperController = require('./pageController');
 
 let browserInstance = startBrowser();
 
@@ -50,11 +47,11 @@ async function pageScraper(browser, query){
 
         console.log('items', items)
 
-        names = items.map((el) => el.querySelector('div.more-search-info > p').textContent)
+        const names = items.map((el) => el.querySelector('div.more-search-info > p').textContent)
         console.log('names', names)
-        kvks = items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
+        const kvks = items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
         console.log('kvks', kvks)
-        links = items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
+        const links = items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
         console.log('links', links)
 
         for (let i = 0; i < items.length; i++) {
@@ -76,8 +73,11 @@ export default function handler(req, res) {
 
   try {
     scrapeAll(browserInstance, query).then((val) => {
-      //console.log(val)
-      res.send((val))
+      const data = {
+          name: query,
+          items: val,
+      }
+      res.send(data)
     });
   } catch (e) {
     res.send(e);
