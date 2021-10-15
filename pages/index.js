@@ -15,7 +15,6 @@ export default function Home() {
     const [loading, setLoading] = useState(false);
     const [download, setDownload] = useState(null)
     const [downloading, setDownloading] = useState(false);
-    const [steps, setSteps] = useState(null)
     const [currentStep, setCurrentStep] = useState(null)
     const [upload, setUpload] = useState(null)
     const [uploading, setUploading] = useState(false);
@@ -23,11 +22,10 @@ export default function Home() {
     const [data, setData] = useState([]);
 
     const fetchData = async (query) => {
-        console.log(query);
+        console.log(encodeURIComponent(query));
         setLoading(true);
         try {
             await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
-                console.log("DATAAA: ",res.data)
                 setData(res.data);
                 setLoading(false);
             })
@@ -49,8 +47,9 @@ export default function Home() {
             /* Convert array of arrays */
             const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
             /* Update state */
-            setUpload(JSON.parse(convertToJson(data)).splice(-1)); // shows data in json format
-            console.log(JSON.parse(convertToJson(data)).splice(-1))
+            setUpload(JSON.parse(convertToJson(data))); // shows data in json format
+            fetchData(JSON.parse(convertToJson(data))[0].name)
+            console.log(JSON.parse(convertToJson(data)))
         };
         reader.readAsBinaryString(file);
     }
@@ -91,7 +90,6 @@ export default function Home() {
             if (info.file.status === 'done') {
                 readFile(info.fileList[0].originFileObj)
                 setCurrentStep(1);
-                await fetchData(upload[0].name)
                 message.success(`${info.file.name} file uploaded successfully`);
                 setUploading(false)
             } else if (info.file.status === 'error') {
@@ -100,6 +98,12 @@ export default function Home() {
             }
         },
     };
+
+    const incrementStep = () => {
+        const nextStep = currentStep + 1;
+        setCurrentStep(nextStep)
+        fetchData(upload[currentStep].name)
+    }
 
     useEffect(() => {
         console.log(data)
@@ -120,9 +124,9 @@ export default function Home() {
                     <Button
                         loading={loading}
                         disabled={loading}
-                        onClick={() => fetchData("TechNet%20Business%20Development%20Group")}
+                        onClick={() => incrementStep()}
                     >
-                        Fetch data
+                       Next step
                     </Button>
                     <Button
                         type="primary"

@@ -50,15 +50,15 @@ async function pageScraper(browser, query){
         let data = [];
 
         console.log('items', items)
-        
-        const names =  items.map((el) => el.waitForSelector('div.more-search-info > p').textContent)
+
+        const names =  items.map((el) => el.querySelector('div.more-search-info > p').textContent)
         console.log('names', names)
-        const kvks =  items.map((el) => el.waitForSelector('div.content > ul > li:nth-child(1)').textContent)
+        const kvks =  items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
         console.log('kvks', kvks)
-        const links =  items.map((el) => el.waitForSelector('div.handelsnaamHeaderWrapper > h3 > a').href)
+        const links =  items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
         console.log('links', links)
-        
-    
+
+
 
         for (let i = 0; i < items.length; i++) {
             data[i] = {
@@ -69,7 +69,9 @@ async function pageScraper(browser, query){
         }
 
         return data;
-    }).catch(error => console.log("ERROR OCCURED: ", error));
+    }).catch(error =>
+        console.log(error)
+    );
     return urls;
 }
 
@@ -84,7 +86,6 @@ export default function handler(req, res) {
           name: query,
           items: val,
       }
-      console.log("DATA: ", data);
       res.status(200).send(data)
     });
   } catch (e) {
