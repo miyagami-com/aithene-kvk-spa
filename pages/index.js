@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import axios from 'axios';
 
-import {Button, Input, Layout, message, PageHeader, Upload, Typography} from 'antd';
+import {Button, Input, Layout, message, PageHeader, Upload, Typography, Tag} from 'antd';
 import {CloudUploadOutlined, DownloadOutlined} from '@ant-design/icons';
 import {TableComponent} from "../components/Table";
 import {useEffect, useState} from "react";
@@ -32,6 +32,7 @@ export default function Home() {
                 setLoading(false);
             })
         } catch (e) {
+            console.log(e)
             message.error("Error occured looking for data")
             setLoading(false);
         }
@@ -81,7 +82,7 @@ export default function Home() {
 
     const handleEnter = (e) => {
         if (e.key === "Enter") {
-            return fetchData(query);
+            fetchData(query);
         }
     };
 
@@ -89,6 +90,7 @@ export default function Home() {
         name: 'file',
         accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         maxCount: 1,
+        showUploadList: false,
         headers: {
             authorization: 'authorization-text',
         },
@@ -108,6 +110,30 @@ export default function Home() {
         },
     };
 
+    const generateTags = () => {
+        const words = data?.name?.split(' ')
+        return words?.map((word) => (
+            <Button style={{padding: 0}} type="link" onClick={() => fetchData(word)}>
+            <Tag key={word} color="blue" >{word}</Tag>
+            </Button>
+        ))
+    }
+
+    // rowSelection object indicates the need for row selection
+    const rowSelection = {
+        onChange: (selectedRowKeys, selectedRows) => {
+            if (currentStep) {
+                const newObject = upload;
+                // newObject[currentStep - 1].kvk-name = selectedRows[0].name
+                // setUpload(...upload,
+                //     upload[currentStep - 1].kvk-name: selectedRows[0].name,
+                //
+                // )
+            }
+            console.log('selectedRows: ', selectedRows);
+        },
+    };
+
 
     const incrementStep = () => {
         const nextStep = currentStep + 1;
@@ -123,7 +149,7 @@ export default function Home() {
         <Layout className="layout" theme="light">
             <Header style={{background: 'white', display: 'flex', flexDirection: 'row'}}>
                 <Title className="logo" level={3}>Aithena KVK Scraper</Title>
-                <Input placeholder="Search Company" style={{
+                <Input placeholder="Search Company" value={query} style={{
                     width: 400,
                     margin: 'auto'
                 }} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleEnter}/>
@@ -160,9 +186,10 @@ export default function Home() {
                     className="site-page-header"
                     title={`${currentStep ? `${currentStep} / ${upload?.length}` : ''} ${data?.name || "Search query"}`}
                     subTitle={`${data?.items?.length || ''} ${data?.items?.length ? 'Results' : ''}`}
+                    tags={generateTags()}
                 />
                 <div className="site-layout-content">
-                    <TableComponent data={data?.items} setData={setData}/>
+                    <TableComponent data={data?.items} setData={setData} rowSelection={rowSelection}/>
                 </div>
             </Content>
             <Footer style={{textAlign: 'center'}}>Created with <span role="image">❤️</span>by

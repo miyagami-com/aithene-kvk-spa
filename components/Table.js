@@ -13,10 +13,15 @@ const columns = [
     },
 ];
 
-export const TableComponent = ({data}) => {
+export const TableComponent = ({data, rowSelection}) => {
     return (
         <div>
             <Table
+                rowSelection={{
+                    type: 'radio',
+                    ...rowSelection,
+                }}
+                rowKey={record => record.kvk}
                 columns={columns}
                 dataSource={data}
             />
