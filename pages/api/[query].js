@@ -83,11 +83,7 @@ export default function handler(req, res) {
 
   try {
     scrapeAll(browserInstance, query).then((val) => {
-      const data = {
-          name: query,
-          items: val,
-      }
-      res.status(200).send(data)
+      res.status(200).send(val)
     });
   } catch (e) {
     res.status(400).send(e);

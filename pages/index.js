@@ -1,8 +1,6 @@
-import Head from 'next/head'
-import Image from 'next/image'
 import axios from 'axios';
 
-import {Button, Input, Layout, message, PageHeader, Upload, Typography, Tag} from 'antd';
+import {Button, Input, Layout, message, PageHeader, Statistic, Tag, Typography, Upload} from 'antd';
 import {CloudUploadOutlined, DownloadOutlined} from '@ant-design/icons';
 import {TableComponent} from "../components/Table";
 import {useEffect, useState} from "react";
@@ -10,18 +8,19 @@ import * as XLSX from 'xlsx';
 
 const {Header, Content, Footer} = Layout;
 const {Title} = Typography;
+const {Search} = Input;
 
 export default function Home() {
-    const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [download, setDownload] = useState(null)
     const [downloading, setDownloading] = useState(false);
     const [currentStep, setCurrentStep] = useState(null)
     const [upload, setUpload] = useState(null)
     const [uploading, setUploading] = useState(false);
-
     const [data, setData] = useState([]);
-    axios.defaults.timeout = 10000;
+    const [title, setTitle] = useState(null)
+
+    axios.defaults.timeout = 5000;
 
     const fetchData = async (query) => {
         console.log(encodeURIComponent(query));
@@ -29,11 +28,13 @@ export default function Home() {
         try {
             await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
                 setData(res.data);
+                setTitle(query);
                 setLoading(false);
             })
         } catch (e) {
             console.log(e)
             message.error("Error occured looking for data")
+            setTitle(query);
             setLoading(false);
         }
     }
@@ -80,10 +81,8 @@ export default function Home() {
         return JSON.stringify(result); //JSON
     }
 
-    const handleEnter = (e) => {
-        if (e.key === "Enter") {
-            fetchData(query);
-        }
+    const handleSearch = (val) => {
+        fetchData(val);
     };
 
     const uploadProps = {
@@ -111,10 +110,10 @@ export default function Home() {
     };
 
     const generateTags = () => {
-        const words = data?.name?.split(' ')
-        return words?.map((word) => (
+        const words = title?.split(' ')
+        return words?.length > 1 && words?.map((word) => (
             <Button style={{padding: 0}} type="link" onClick={() => fetchData(word)}>
-            <Tag key={word} color="blue" >{word}</Tag>
+                <Tag key={word} color="blue">{word}</Tag>
             </Button>
         ))
     }
@@ -123,12 +122,13 @@ export default function Home() {
     const rowSelection = {
         onChange: (selectedRowKeys, selectedRows) => {
             if (currentStep) {
-                const newObject = upload;
-                // newObject[currentStep - 1].kvk-name = selectedRows[0].name
-                // setUpload(...upload,
-                //     upload[currentStep - 1].kvk-name: selectedRows[0].name,
-                //
-                // )
+                const temp = upload;
+                temp[currentStep - 1].kvk_name = selectedRows[0].name;
+                temp[currentStep - 1].kvk_number = selectedRows[0].kvk;
+                temp[currentStep - 1].kvk_link = selectedRows[0].link;
+                // upload[currentStep - 1].kvk-name = selectedRows[0].name
+                setUpload(temp);
+                incrementStep();
             }
             console.log('selectedRows: ', selectedRows);
         },
@@ -137,8 +137,31 @@ export default function Home() {
 
     const incrementStep = () => {
         const nextStep = currentStep + 1;
-        setCurrentStep(nextStep)
-        fetchData(upload[currentStep].name)
+        if (currentStep >= upload.length) {
+            setDownloading(true);
+            const wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: "KVK Scraper",
+                Subject: "MIT LICENSE",
+                Author: "Miyagami BV",
+                CreatedDate: new Date()
+            };
+            wb.SheetNames.push("Items");
+            const ws = XLSX.utils.json_to_sheet(JSON.stringify(upload));
+            wb.Sheets["Items"] = ws;
+            const wbout = XLSX.write(wb, {bookType:'xlsx',  type: 'binary'});
+            setDownload(wbout)
+        } else {
+            setCurrentStep(nextStep)
+            fetchData(upload[currentStep].name)
+        }
+    }
+
+    function s2ab(s) {
+        const buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
+        const view = new Uint8Array(buf);  //create uint8array as viewer
+        for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
+        return buf;
     }
 
     useEffect(() => {
@@ -148,12 +171,19 @@ export default function Home() {
     return (
         <Layout className="layout" theme="light">
             <Header style={{background: 'white', display: 'flex', flexDirection: 'row'}}>
-                <Title className="logo" level={3}>Aithena KVK Scraper</Title>
-                <Input placeholder="Search Company" value={query} style={{
-                    width: 400,
-                    margin: 'auto'
-                }} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleEnter}/>
+                <Title className="logo" level={3}>KVK Scraper</Title>
+                <Search
+                    placeholder="input search text"
+                    style={{
+                        width: 300,
+                        margin: 'auto'
+                    }}
+                    onSearch={(value) => fetchData(value)}
+                    enterButton
+                    loading={loading}
+                />
                 <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                    {!upload &&
                     <Upload {...uploadProps}>
                         <Button
                             icon={<CloudUploadOutlined/>}
@@ -164,13 +194,15 @@ export default function Home() {
                             Upload
                         </Button>
                     </Upload>
+                    }
+                    {upload &&
                     <Button
-                        loading={loading}
-                        disabled={!upload}
+                        disabled={loading}
                         onClick={() => incrementStep()}
                     >
                         Next step
                     </Button>
+                    }
                     <Button
                         type="primary"
                         icon={<DownloadOutlined/>}
@@ -184,12 +216,13 @@ export default function Home() {
             <Content style={{padding: '10px 30px'}}>
                 <PageHeader
                     className="site-page-header"
-                    title={`${currentStep ? `${currentStep} / ${upload?.length}` : ''} ${data?.name || "Search query"}`}
-                    subTitle={`${data?.items?.length || ''} ${data?.items?.length ? 'Results' : ''}`}
+                    title={`${title || "Search query"}`}
+                    subTitle={`${data?.length || ''} ${data?.length ? 'Results' : ''}`}
                     tags={generateTags()}
+                    extra={[currentStep &&  <Statistic title="Items" value={currentStep} suffix={`/ ${upload?.length}`} />]}
                 />
                 <div className="site-layout-content">
-                    <TableComponent data={data?.items} setData={setData} rowSelection={rowSelection}/>
+                    <TableComponent data={data} setData={setData} rowSelection={rowSelection}/>
                 </div>
             </Content>
             <Footer style={{textAlign: 'center'}}>Created with <span role="image">❤️</span>by
