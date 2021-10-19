@@ -38,7 +38,7 @@ export default function Home() {
     const {width} = useWindowSize();
 
     const isMobile = width < 768;
-    axios.defaults.timeout = 12000;
+    // axios.defaults.timeout = 12000;
 
     const uploadProps = {
         name: 'file',
