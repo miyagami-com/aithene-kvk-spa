@@ -43,6 +43,7 @@ export default function Home() {
     const uploadProps = {
         name: 'file',
         accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
         maxCount: 1,
         showUploadList: false,
         headers: {

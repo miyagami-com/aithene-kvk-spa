@@ -68,10 +68,10 @@ async function pageScraper(browser, query){
 }
 
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   let query = req.query.query;
   try {
-    scrapeAll(browserInstance, query).then((val) => {
+    await scrapeAll(browserInstance, query).then((val) => {
       res.status(200).send(val)
     });
   } catch (e) {
