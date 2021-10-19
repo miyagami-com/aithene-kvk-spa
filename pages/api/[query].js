@@ -47,40 +47,29 @@ async function pageScraper(browser, query){
       return [];
     });
     // Get the link to all the required books
-    let urls = await page.$$eval('#js-search-results > div > ul.results > li', items => {
+    return await page.$$eval('#js-search-results > div > ul.results > li', items => {
         let data = [];
 
-        console.log('items', items)
-
-        const names =  items.map((el) => el.querySelector('div.more-search-info > p').textContent)
-        console.log('names', names)
-        const kvks =  items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
-        console.log('kvks', kvks)
-        const links =  items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
-        console.log('links', links)
-
-
+        const names = items.map((el) => el.querySelector('div.more-search-info > p').textContent)
+        const kvks = items.map((el) => el.querySelector('div.content > ul > li:nth-child(1)').textContent)
+        const links = items.map((el) => el.querySelector('div.handelsnaamHeaderWrapper > h3 > a').href)
 
         for (let i = 0; i < items.length; i++) {
             data[i] = {
                 name: names[i],
-                kvk: kvks[i].slice(4,-1),
+                kvk: kvks[i].slice(4, -1),
                 href: [links[i]]
             }
         }
-
         return data;
     }).catch(error =>
         console.log(error)
     );
-    return urls;
 }
 
 
 export default function handler(req, res) {
   let query = req.query.query;
-  console.log(query);
-
   try {
     scrapeAll(browserInstance, query).then((val) => {
       res.status(200).send(val)
@@ -88,7 +77,4 @@ export default function handler(req, res) {
   } catch (e) {
     res.status(400).send(e);
   }
-
-
-  //res.status(200).json({ name: 'John Doe' })
 }

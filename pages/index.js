@@ -75,7 +75,7 @@ export default function Home() {
             })
         } catch (e) {
             console.log(e)
-            message.error("Error occured looking for data")
+            message.error("Error occurred looking for data")
             setTitle(query);
             setLoading(false);
         }
@@ -91,7 +91,7 @@ export default function Home() {
             let data = JSON.parse(convertToJson(XLSX.utils.sheet_to_csv(ws, {header: 1})));
             data.pop();
             setUpload(data);
-            fetchData(data[0].name)
+            // fetchData(data[0].name)
         };
         reader.readAsBinaryString(file);
     }
