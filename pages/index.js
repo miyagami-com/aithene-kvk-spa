@@ -127,8 +127,8 @@ export default function Home() {
     const generateTags = () => {
         const words = title?.split(' ')
         return words?.length > 1 && !isMobile && words?.map((word) => (
-            <Button style={{padding: 0}} type="link" onClick={() => fetchData(word)}>
-                <Tag key={word} color="blue">{word}</Tag>
+            <Button key={word} style={{padding: 0}} type="link" onClick={() => fetchData(word)}>
+                <Tag color="blue">{word}</Tag>
             </Button>
         ))
     }

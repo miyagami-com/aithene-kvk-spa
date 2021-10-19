@@ -7,14 +7,13 @@ let browserInstance = startBrowser();
 async function startBrowser(){
     let browser;
     try {
-        console.log("Opening the browser......");
         browser = await puppeteer.launch({
             headless: true,
             args: ["--disable-setuid-sandbox"],
             'ignoreHTTPSErrors': true
         });
     } catch (err) {
-        console.log("Could not create a browser instance => : ", err);
+        return (err)
     }
     return browser;
 }
@@ -23,11 +22,9 @@ async function scrapeAll(browserInstance, query){
     let browser;
     try{
         browser = await browserInstance;
-        console.log("Scraped all");
         return await pageScraper(browser, query);
     }
     catch(err) {
-        console.log("Could not resolve the browser instance => ", err);
         return (err)
     }
 }
@@ -37,14 +34,12 @@ async function pageScraper(browser, query){
     let page = await browser.newPage();
 
     await page.setViewport({width: 1366, height: 1400})
-    console.log(`Navigating to ${url}...`);
     // Navigate to the selected page
     await page.goto(url);
     // Wait for the required DOM to be rendered
 
     await page.waitForSelector('#js-search-results > div > ul.results').catch(error => {
-      console.log("Error finding data: ", error)
-      return [];
+      return (error);
     });
     // Get the link to all the required books
     return await page.$$eval('#js-search-results > div > ul.results > li', items => {
@@ -62,9 +57,9 @@ async function pageScraper(browser, query){
             }
         }
         return data;
-    }).catch(error =>
-        console.log(error)
-    );
+    }).catch(error => {
+        return (error);
+    });
 }
 
 
