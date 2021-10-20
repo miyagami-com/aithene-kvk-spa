@@ -38,7 +38,7 @@ export default function Home() {
     const {width} = useWindowSize();
 
     const isMobile = width < 768;
-    // axios.defaults.timeout = 12000;
+    axios.defaults.timeout = 12000;
 
     const uploadProps = {
         name: 'file',
@@ -70,6 +70,7 @@ export default function Home() {
         setLoading(true);
         try {
             await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
+                console.log(res);
                 setData(res.data);
                 setTitle(query);
                 setLoading(false);

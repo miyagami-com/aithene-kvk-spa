@@ -100,23 +100,26 @@ export default async function handler(req, res) {
             return data;
         })
     } catch (error) {
-        return (error)
+        result = error;
+        console.log(error)
     } finally {
         if (browser !== null) {
             await browser.close();
         }
     }
-    return result;
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(result))
 
-    // res.statusCode = 200
-    // res.setHeader('Content-Type', 'application/json')
-    // res.end(JSON.stringify(content))
+        // res.statusCode = 200
+        // res.setHeader('Content-Type', 'application/json')
+        // res.end(JSON.stringify(content))
 
-    // try {
-    //     await scrapeAll(query).then((val) => {
-    //         res.status(200).send(val)
-    //     });
-    // } catch (e) {
-    //     res.status(400).send(e);
-    // }
+        // try {
+        //     await scrapeAll(query).then((val) => {
+        //         res.status(200).send(val)
+        //     });
+        // } catch (e) {
+        //     res.status(400).send(e);
+        // }
 }
