@@ -26,7 +26,9 @@ const {Title} = Typography;
 const {Search} = Input;
 
 export default function Home() {
+    const cookieName = 'first-time';
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isFirstTime, setIsFirstTime] = useState(false);
     const [loading, setLoading] = useState(false);
     const [fileName, setFileName] = useState('');
     const [download, setDownload] = useState(null)
@@ -192,9 +194,20 @@ export default function Home() {
         return buf;
     }
 
+    const onDemoClose = () => {
+        localStorage.setItem(cookieName, 'nope!');
+        setIsFirstTime(false);
+    }
+
     useEffect(() => {
         console.log(upload)
     }, [data])
+
+    useEffect(() => {
+        if (!localStorage.getItem(cookieName)) {
+            setIsFirstTime(true)
+        }
+    }, []);
 
     return (
         <Layout className="layout" theme="light">
@@ -209,11 +222,11 @@ export default function Home() {
                 <div
                     style={{
                         display: 'flex',
-                        flexDirection:'row',
+                        flexDirection: 'row',
                         alignItems: "center"
                     }}
                 >
-                    <Image src='/aithena-logo.png' width={140} height={40} />
+                    <Image src='/aithena-logo.png' width={140} height={40}/>
                     {fileName ?
                         <Statistic style={{marginLeft: 30}} title="Filename" value={fileName}/>
                         :
@@ -301,6 +314,19 @@ export default function Home() {
             <Footer style={{textAlign: 'center'}}>Created with <span role="image">❤️</span> by
                 <a href="https://miyagami.com" target="_blank" rel="noreferrer noopener"> Miyagami</a>
             </Footer>
+            <Modal
+                title={'How to use the Aithena KVK Scraper'}
+                visible={isFirstTime}
+                onOk={() => onDemoClose()}
+                onCancel={() => onDemoClose()}
+            >
+                <video width="100%" height="auto" controls>
+                    <source src="/aithena-demo.mp4" type="video/mp4"/>
+                    Your browser does not support the video tag. <a
+                    href="https://www.loom.com/share/5ac6a6c2a54b456bab3faf92f83d9e96" target="_blank"
+                    rel="noreferrer noopener">Click here</a> to watch it on Loom!
+                </video>
+            </Modal>
             <Modal
                 title={upload?.[currentStep - 1]?.name || 'Description modal'}
                 visible={isModalVisible}
