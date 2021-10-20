@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import useWindowSize from "../utils/useWindowSize";
 import {TableComponent} from "../components/Table";
+import Image from 'next/image';
 
 import * as XLSX from 'xlsx';
 import axios from 'axios';
@@ -38,7 +39,7 @@ export default function Home() {
     const {width} = useWindowSize();
 
     const isMobile = width < 768;
-    axios.defaults.timeout = 12000;
+    axios.defaults.timeout = 14000;
 
     const uploadProps = {
         name: 'file',
@@ -66,18 +67,26 @@ export default function Home() {
         },
     };
 
+    const validateData = (data, key) => {
+        return [
+            ...new Map(data.filter((item) => item.name).map(item => [key(item), item])).values()
+        ]
+    }
+
     const fetchData = async (query) => {
+        let validatedData = null;
         setLoading(true);
         try {
             await axios.get(`/api/${encodeURIComponent(query)}`).then((res) => {
-                console.log(res);
-                setData(res.data);
+                validatedData = validateData(res.data !== {} ? res.data : [], item => item.kvk)
+                setData(validatedData);
                 setTitle(query);
                 setLoading(false);
             })
         } catch (e) {
             console.log(e)
             message.error("Error occurred looking for data")
+            setData([])
             setTitle(query);
             setLoading(false);
         }
@@ -104,9 +113,15 @@ export default function Home() {
         const blob = new Blob([s2ab(download)], {type: "application/octet-stream"});
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
-        link.download = `${fileName}-${+new Date()}.xlsx`;
+        link.download = `${fileName}-${+new Date().toLocaleDateString()}.xlsx`;
         link.click();
         setDownloading(false);
+        setUpload(null);
+        setDownload(null);
+        setCurrentStep(null);
+        setTitle(null);
+        setData([]);
+        setFileName(null);
     };
 
     const convertToJson = (csv) => {
@@ -178,6 +193,7 @@ export default function Home() {
     }
 
     useEffect(() => {
+        console.log(upload)
     }, [data])
 
     return (
@@ -190,9 +206,22 @@ export default function Home() {
                 height: 'auto',
                 padding: "14px 30px"
             }}>
-                <Title className="logo" level={3}>
-                    {fileName || 'KVK Scraper'}
-                </Title>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection:'row',
+                        alignItems: "center"
+                    }}
+                >
+                    <Image src='/aithena-logo.png' width={140} height={40} />
+                    {fileName ?
+                        <Statistic style={{marginLeft: 30}} title="Filename" value={fileName}/>
+                        :
+                        <Title style={{marginLeft: 30}} className="logo" level={3}>
+                            {fileName || 'KVK Scraper'}
+                        </Title>
+                    }
+                </div>
                 <div style={{
                     display: "flex",
                     flexDirection: isMobile ? 'column' : 'row',
@@ -252,20 +281,21 @@ export default function Home() {
                     title={`${title || "Search query"}`}
                     subTitle={`${data?.length || ''} ${data?.length ? 'Results' : ''}`}
                     tags={generateTags()}
-                    extra={[currentStep &&
-                    <a
-                        style={{
-                            display: 'flex',
-                            width: 'max-content',
-                            justifyContent: 'flex-end',
-                        }}
-                        onClick={() => setIsModalVisible(true)}>
-                        <Statistic title="Items" value={currentStep} suffix={`/ ${upload?.length}`}/>
-                    </a>
+                    extra={[
+                        currentStep &&
+                        <a
+                            style={{
+                                display: 'flex',
+                                width: 'max-content',
+                                justifyContent: 'flex-end',
+                            }}
+                            onClick={() => setIsModalVisible(true)}>
+                            <Statistic title="Items" value={currentStep} suffix={`/ ${upload?.length}`}/>
+                        </a>
                     ]}
                 />
                 <div className="site-layout-content">
-                    <TableComponent data={data} setData={setData} rowSelection={rowSelection}/>
+                    <TableComponent data={data} setData={setData} rowSelection={rowSelection} loading={loading}/>
                 </div>
             </Content>
             <Footer style={{textAlign: 'center'}}>Created with <span role="image">❤️</span> by
